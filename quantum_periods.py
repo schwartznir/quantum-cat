@@ -1,6 +1,5 @@
 # Quantum period of hyperbolic toral automorphisms (classical cat maps)
 # Nir Schwartz
-# Last modified: 21/11/2021
 # Description:
 # In [NS21] we consider extremely short quantum periods P(N) for the quantum cat map
 # related to classical periods (cf. \cite{BDB00} for the connection). The code below
@@ -9,7 +8,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-
+import os
 
 def fast_find_order(dimat):
     # find the quantum period of a hard-coded classical cat map mod N
@@ -35,9 +34,8 @@ def fast_find_order(dimat):
 
 
 def plot_periods(max_num):
-    small_pers = np.loadtxt('small_periods.txt')
-    deg_indices = np.loadtxt('degNs.txt')
-    all_indices = np.array(list(range(2, max_num + 1)))
+    small_np = np.loadtxt('small_periods.txt', skiprows=2)
+    entire_np = np.loadtxt('all_periods.txt', skiprows=2)
     t = np.linspace(2.0, float(N + 1), N ** 2)
     s1 = 2 * np.log10(t) / np.log10(2 + np.sqrt(3))
     s2 = 1.5 * t * np.log(np.abs(np.log(t)))
@@ -45,8 +43,8 @@ def plot_periods(max_num):
     fig.add_subplot(211)
     plt.plot(t, s1, c='red', label=r"$2\frac{\log N}{\log \lambda}$")
     plt.plot(t, s2, c='purple', label=r"$N^{1+\epsilon}$")
-    plt.scatter(all_indices, np.array(orders), s=4, c='blue', label="P(N)")
-    plt.scatter(deg_indices, small_pers, s=5, c='orange', label="Short P(N)")
+    plt.scatter(entire_np[:, 0], entire_np[:, 1], s=4, c='blue', label="P(N)")
+    plt.scatter(small_np[:, 0], small_np[:, 1], s=5, c='orange', label="Short P(N)")
     # plt.yscale("log")
     plt.xlabel("$N$")
     plt.ylim([1, 2 * N])
@@ -59,7 +57,7 @@ def plot_periods(max_num):
     plt.plot(t, s1, c='red', label=r'2$\frac{\log N}{\log \lambda}$')
     s3 = 4 * np.log10(t) / np.log10(2 + np.sqrt(3))
     plt.plot(t, s3, c='orange', label=r'4$\frac{\log N}{\log \lambda}$')
-    plt.scatter(deg_indices, small_pers, s=6, c='blue', label=r'Short $P(N)$')
+    plt.scatter(small_np[:, 0], small_np[:, 1], s=6, c='blue', label=r'Short $P(N)$')
     plt.xscale("log")
     plt.xlim([2, N + 1])
     plt.ylabel("Short $P(N)$")
@@ -71,27 +69,38 @@ def plot_periods(max_num):
 
 if __name__ == '__main__':
     # hard code maximal N and list all periods in one file and the extremly short ones in another.
-    max_num = 10000
+    max_num = 100
     orders = np.zeros([1, max_num - 1])
     idx = 0
-    with open('degNs.txt', "w") as deg_Ns:
-        with open('small_periods.txt', "w") as small_file:
-            with open('all_periods.txt', "w") as file:
-                N = -1
 
+    filenames = ['all_periods.txt', 'small_periods.txt', 'degNs.txt']
+    for filename in filenames:
+        if os.path.exists(filename):
+            os.remove(filename)
+
+    with open('all_periods.txt', "w") as file:
+        with open('small_periods.txt', "w") as small_file:
+            with open('degNs.txt', "w") as deg_Ns:
+                N = -1
+                file.write(f'Dataset: Quantum periods until N={max_num}\n')
+                file.write('N | P(N)\n')
+                small_file.write(f'Dataset: Short quantum periods until N={max_num}\n')
+                small_file.write('N | P(N)\n')
+                deg_Ns.write(f'List of Ns having small quantum period until N={max_num}\n')
+                deg_Ns.write('N\n')
                 for N in range(2, max_num + 1):
                     orders[0, idx] = fast_find_order(N)
 
                     # an extremely short classical period s.t. its quantum analogue is in N_alpha
                     if orders[0, idx] < 4 * np.log(N) / np.abs(np.log(2 + np.sqrt(3))):
-                        small_file.write(str(orders[0, idx]) + '\n')
+                        small_file.write(f"{idx+2} {orders[0, idx]} \n")
                         deg_Ns.write(str(idx+2) + '\n')
 
-                    file.write(str(orders[0, idx]) + '\n')
-                    print('done with:' + str(N))
+                    file.write(f"{idx+2} {orders[0, idx]} \n")
+                    print(f'done with:{N}')
                     idx += 1
 
-    print('Done finding all classical periods until N=', max_num)
+    print(f'Done finding all quantum periods until N={max_num}')
 
     # plot the results
     plot_periods(max_num)
