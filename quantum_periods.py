@@ -83,9 +83,9 @@ if __name__ == '__main__':
             with open('degNs.txt', "w") as deg_Ns:
                 N = -1
                 file.write(f'Dataset: Quantum periods until N={max_num}\n')
-                file.write('N | P(N)\n')
+                file.write('N P(N)\n')
                 small_file.write(f'Dataset: Short quantum periods until N={max_num}\n')
-                small_file.write('N | P(N)\n')
+                small_file.write('N P(N)\n')
                 deg_Ns.write(f'List of Ns having small quantum period until N={max_num}\n')
                 deg_Ns.write('N\n')
                 for N in range(2, max_num + 1):
